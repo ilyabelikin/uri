@@ -1,108 +1,61 @@
 use v6;
-
 use Test;
-plan 18;
+plan 28;
 
-use Dispatcher;
-ok(1,'We use Dispatcher and we are still alive');
+use URI;
+ok(1,'We use URI and we are still alive');
 
-use Dispatcher::Rule;
-ok(1,'We use Dispatcher::Rule and we are still alive');
+my $u = URI.new;
+$u.init('http://example.com:80/about/us?foo#bar');
 
-my $d = Dispatcher.new;
+is($u.scheme, 'http', 'scheme'); 
+is($u.host, 'example.com', 'host'); 
+is($u.port, '80', 'port'); 
+is($u.path, '/about/us', 'path'); 
+is($u.query, 'foo', 'query'); 
+is($u.frag, 'bar', 'frag'); 
+is($u.chunks, 'about us', 'chunks'); 
+is($u.chunks[0], 'about', 'first chunk'); 
+is($u.chunks[1], 'us', 'second chunk'); 
 
-dies_ok( { $d.add: Dispatcher::Rule.new }, 
-         'Dispatch .add adds only complete Rule objects' );
+is( ~$u, 'http://example.com:80/about/us?foo#bar',
+    'Complete path stringification');
 
-$d.add: Dispatcher::Rule.new( :tokens(''), action => { "Krevedko" } );
+$u.init('https://eXAMplE.COM');
 
-is( $d.dispatch(['']), 
-    'Krevedko', 
-    "Dispatch to Rule ['']"
-);
+is($u.scheme, 'https', 'scheme'); 
+is($u.host, 'example.com', 'host'); 
+is( "$u", 'https://example.com',
+    'https://eXAMplE.COM stringifies to https://example.com');
 
-ok( $d.add( ['foo', 'bar'], { "Yay" } ), 
-           '.add fith @tokens and $action -- shortcut for fast add Rule object' );
+$u.init('/foo/bar/baz');
 
-nok( $d.dispatch(['foo']), 
-    'Dispatcher return False if can`t find match Rule and do not have default'  );
+is($u.chunks, 'foo bar baz', 'chunks from absolute path'); 
+ok($u.absolute, 'absolute path'); 
+nok($u.relative, 'not relative path'); 
 
+$u.init('foo/bar/baz');
 
-is( $d.dispatch(['foo', 'bar']), 
-    "Yay", 
-    "Dispatch to Rule ['foo', 'bar'])"
-);
+is($u.chunks, 'foo bar baz', 'chunks from relative path'); 
+ok( $u.relative, 'relative path'); 
+nok($u.absolute, 'not absolute path'); 
 
-$d.default = { "Woow" };
+is($u.chunks[0], 'foo', 'first chunk'); 
+is($u.chunks[1], 'bar', 'second chunk'); 
+is($u.chunks[*-1], 'baz', 'last chunk'); 
 
-is( $d.dispatch(['foo', 'bar', 'baz']), 
-    "Woow", 
-    'Dispatch to default, when have no matched Rule'  
-);
+$u.init('http://foo.com');
 
-$d.add: ['foo', 'a'|'b'], { "Zzzz" };
+ok($u.chunks.list.perl eq '[""]', ".chunks return [''] for empty path");
+ok($u.absolute, 'http://foo.com has an absolute path'); 
+nok($u.relative, 'http://foo.com does not have a relative path'); 
 
-is( $d.dispatch(['foo', 'a']), 
-    'Zzzz', 
-    'Dispatch to Rule with Junction a'  
-);
+# test URI parsing with <> or "" and spaces
+$u.init("<http://foo.com> ");
+is("$u", 'http://foo.com', '<> removed from str');
 
-is( $d.dispatch(['foo', 'b']), 
-    'Zzzz', 
-    'Dispatch to Rule with Junction (foo/a|b) b'  
-);
+$u.init(' "http://foo.com"');
+is("$u", 'http://foo.com', '"" removed from str');
 
-$d.add: ['foo', /^ \d+ $/], { $^d };
-
-is( $d.dispatch(['foo', '50']), 
-    '50', 
-    "Dispatch to Rule with regexp ['foo', /^ \d+ \$/])"  
-);
-
-$d.add( [/^ \w+ $/], { "Yep!" if $^w.WHAT eq 'Match' } );
-
-is( $d.dispatch(['so']), 
-    'Yep!', 
-    "Argument is Match"
-);
-
-$d.add: ['foo', / \d+ /], { $^d + 10 };
-
-is( $d.dispatch(['foo', '50']), 
-    '60', 
-    "Dispatch ['foo', '50'] to last matched Rule" 
-);
-
-is( $d.dispatch(['foo', 'a50z']), 
-    '60', 
-    'Rule that catches the right arg'  
-);
-
-$d.add: ['foo', / \d+ /, 'bar' ], { $^d + 1 };
-
-is( $d.dispatch(['foo', 'item4', 'bar']), 
-    '5', 
-    'Rule with regexp in the middle (foo/\d+/bar)'
-);
-
-$d.add: ['summ', / \d+ /, / \d+ / ], { $^a + $^b };
-
-
-is( $d.dispatch(['summ', '2', '3']), 
-    '5', 
-    'Dispatch to Rule with two regexps'
-);
-
-$d.add: ['summ', / \w+ /, 1|2 ], { $^a ~ "oo" };
-
-is( $d.dispatch(['summ', 'Z', '2']), 
-    'Zoo', 
-    'Rule with a regexp and a junction'
-);
-
-is( $d.dispatch(['foo', 'bar']), 
-    "Yay", 
-    'Dispatch to simple Rule, test after adding so many Rules' 
-);
 
 # vim:ft=perl6
