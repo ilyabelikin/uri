@@ -5,13 +5,13 @@ use IETF::RFC_Grammar::URI;
 grammar URI::Grammar is IETF::RFC_Grammar::URI {
     
     token TOP               {
-        ^   [<scheme> ':']?
-            [ '//' <authority>]? <path> ['?' <query>]?
+        ^   [ <scheme> ':' ]?
+            [ '//' <authority> ]? <path> [ '?' <query> ]?
             [ '#' <fragment> ]? $
     };
 
-    token authority  { <host> [':' <port>]? };
-    token path       { <slash>? [ <chunk>** '/'?]* };
+    token authority  { <host> [ ':' <port> ]? };
+    token path       { <slash>? [ <chunk>** '/'? ]* };
     token slash      { '/' };
 
 #
