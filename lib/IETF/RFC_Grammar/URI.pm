@@ -54,11 +54,9 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
 
     token path_segments     { <.segment> [ '/' <.segment> ] * };
     
-    
     token segment           { <.pchar>* [ ';' <.param>]* };
     token param             { <.pchar>* };
     token pchar             { <[:@&=+$,] +unreserved> | <.escaped> };
-
 
     token query             { <.uric>* };
     token fragment          { <.uric>* };
