@@ -10,14 +10,16 @@ package URI::Escape {
         %escapes{ chr($c) } = sprintf "%%%02X", $c
     }
 
+    token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
+
     sub uri_escape($s is copy) is export {
         my $rc;
         while $s {
-            if my $not_escape = $s ~~ /^<IETF::RFC_Grammar::URI::unreserved>+/ {
+            if my $not_escape = $s ~~ /^<artifact_unreserved>+/ {
                $rc ~= $not_escape;
                $s.=substr($not_escape.chars);                
             }
-            if my $escape = $s ~~ /^<- IETF::RFC_Grammar::URI::unreserved>+/ {
+            if my $escape = $s ~~ /^<- artifact_unreserved>+/ {
                 $rc ~= ($escape.comb().map: {
                     %escapes{ chr(ord($_)) } || # chr(ord()) ??? @#^^!! it works
                     die 'Can\'t escape \\' ~ sprintf('x{%04X}, try uri_escape_utf8() instead',

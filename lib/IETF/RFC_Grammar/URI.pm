@@ -1,76 +1,77 @@
 use v6;
 
 # Taken/Copied with relatively minor translation to Perl6
-# from rfc 2369 (http://www.ietf.org/rfc/rfc2396.txt)
+# from RFC 3986 (http://www.ietf.org/rfc/rfc3986.txt)
 
 use IETF::RFC_Grammar::IPv6;
 
 grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
-    token URI-reference     {
-        [ <.absoluteURI> | <.relativeURI> ]? [ '#' <fragment> ]?
+    token URI_reference     { <URI> | <relative_ref> };
+
+    token absolute_URI      { <scheme> ':' <hier_part> [ '?' query ]? };
+    token relative_ref      {
+        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
     };
-    token absoluteURI       { <scheme> ':' [ <.hier_part> | <.opaque_part> ] };
-    token relativeURI       {
-        [ <.net_path> | <.abs_path> | <.rel_path> ] [ '?' <.query> ]?
+
+    token relative_part     {
+        '//' <authority> <.path_abempty>    |
+        <.path_absolute>                    |
+        <.path_noscheme>                    |
+        <.path_empty>
     };
-    
-    token hier_part         { [ <.net_path> | <.abs_path> ] [ '?' <.query> ] };
-    token opaque_part       { <.uric_no_slash> <.uric>* };
 
-    token uric_no_slash     { <[;?:@&=+$,] +unreserved +escape> };
+    token URI               {
+        <scheme> ':' <hier_part> [ '?' <query> ]? [ '#' <fragment> ]?
+    };
 
-    token net_path          { '//' <.authority> <.abs_path>? };
-    token abs_path          { '/' <.path_segments> };
-    token rel_path          { <.rel_segment> <.abs_path>? };
-
-    token rel_segment       { <[;@&=+$,] +unreserved +escaped>+ };
+    token hier_part     {
+        '//' <authority> <.path_abempty>    |
+        <.path_absolute>                    |
+        <.path_rootless>                    |
+        <.path_empty>
+    };
 
     token scheme            { <.uri_alpha> <[\-+.] +uri_alpha +digit>* };
-
-    token authority         { <.server> | <.reg_name> };
-
-    token reg_name          { <[$,;:@&=+] +unreserved +escaped>+ };
-
-    token server            { [ [ userinfo '@' ]? hostport ]? };
-    token userinfo          { <[;:&=+$,] +unreserved +escaped> };
     
-    token hostport          { <host> [ ':' <port> ]? };
-    
-    token host              { <hostname> | <IPv4address> | <IPv6reference> };
-    token ipv6reference     { '[' <IPv6address>  ']'}
-    regex hostname          { [ <.domainlabel> '.' ] * <.toplabel> '.'? };
-    regex domainlabel       {
-        [ <.uri_alphanum> <[\-] +uri_alphanum>* <.uri_alphanum> ] |        
-        <.uri_alphanum>
-    };
-    regex toplabel          {
-        [ <.uri_alpha> <[\-] +uri_alphanum>* <.uri_alphanum> ] |        
-        <.uri_alpha>
-    };
-    
+    token authority         { [ <userinfo> '@' ]? <host> [ ':' <port> ]? };
+    token userinfo          {
+        [ <[:] +unreserved +sub_delims> | <.pct_encoded> ]*
+    };    
+    token host              { <IPv4address> | <IP_literal> | <reg_name> };
     token port              { <.digit>* };
 
-    token path              { [ abs_path | opaque_part ]? };
+    token IP_literal        { '[' [ <IPv6address> | <IPvFuture> ] ']' };
+    token IPvFuture         {
+        'v' <.xdigit>+ '.' <[:] +unreserved +sub_delims>+
+    };
+    token reg_name          { [ <+unreserved +sub_delims> | <.pct_encoded> ]* };
 
-    token path_segments     { <.segment> [ '/' <.segment> ] * };
-    
-    token segment           { <.pchar>* [ ';' <.param>]* };
-    token param             { <.pchar>* };
-    token pchar             { <[:@&=+$,] +unreserved> | <.escaped> };
+    token path_abempty      { [ '/' <.segment> ]* };
+    token path_absolute     { '/' [ <.segment_nz> [ '/' <.segment> ]* ]? };
+    token path_noscheme     { <.segment_nz_nc> [ '/' <.segment> ]* };
+    token path_rootless     { <.segment_nz> [ '/' <.segment> ]* };
+    token path_empty        { <.pchar> ** 0 }; # yes - zero characters
 
-    token query             { <.uric>* };
-    token fragment          { <.uric>* };
+    token   segment         { <.pchar>* };
+    token   segment_nz      { <.pchar>+ };
+    token   segment_nz_nc   { [ <+unenc_pchar - [:]> | <.pct_encoded> ] + };
 
-    token uric              { <+reserved +unreserved> | <.escaped> };
-    token reserved          { <[;/?:@&=+$,\[\]]> };
-    token unwise            { <[{}|\\^`]> };
+    token query             { <.fragment> };
+    token fragment          { [ <[/?] +unenc_pchar> | <.pct_encoded> ]* };
 
-    token unreserved        { <+uri_alphanum +mark> };
-    token mark              { <[\-_.!~*'()]> };
+    token pchar             { <.unenc_pchar> | <.pct_encoded> };
+    token unenc_pchar       { <[:@] +unreserved +sub_delims> };
 
-    token escaped           { '%' <.xdigit> <.xdigit> };
+    token pct_encoded       { '%' <.xdigit> <.xdigit> };
 
-    token uri_alphanum      { <+uri_alpha +digit> };
+    token unreserved        { <[\-._~] +uri_alphanum> };
+
+    token reserved          { <+gen_delims +sub_delims> };
+
+    token gen_delims        { <[:/?#\[\]@]> };
+    token sub_delims        { <[;!$&'()*+,=]> };
+
+    token uri_alphanum      { <+uri_alpha +digit> };   
     token uri_alpha         { <+lowalpha +upalpha> };
 
     token lowalpha          { <[a..z]> };

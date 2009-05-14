@@ -10,7 +10,6 @@ grammar URI::Grammar is IETF::RFC_Grammar::URI {
             [ '#' <fragment> ]? $
     };
 
-    token authority  { <host> [ ':' <port> ]? };
     token path       { <slash>? [ <chunk>** '/'? ]* };
     token slash      { '/' };
 
