@@ -10,6 +10,8 @@ package URI::Escape {
         %escapes{ chr($c) } = sprintf "%%%02X", $c
     }
 
+    # in moving from RFC 2396 to RFC 3986 this selection of characters
+    # may be due for an update ...
     token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
 
     sub uri_escape($s is copy) is export {
