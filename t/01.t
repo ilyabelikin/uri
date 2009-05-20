@@ -8,7 +8,8 @@ ok(1,'We use URI and we are still alive');
 my $u = URI.new;
 $u.init('http://example.com:80/about/us?foo#bar');
 
-is($u.scheme, 'http', 'scheme'); 
+is($u.scheme, 'http', 'scheme');
+
 is($u.host, 'example.com', 'host'); 
 is($u.port, '80', 'port'); 
 is($u.path, '/about/us', 'path'); 

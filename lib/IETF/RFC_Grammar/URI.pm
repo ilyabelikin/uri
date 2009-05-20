@@ -6,18 +6,19 @@ use v6;
 use IETF::RFC_Grammar::IPv6;
 
 grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
+    token TOP               { <URI_reference> };
     token URI_reference     { <URI> | <relative_ref> };
 
-    token absolute_URI      { <scheme> ':' <hier_part> [ '?' query ]? };
+    token absolute_URI      { <scheme> ':' <.hier_part> [ '?' query ]? };
     token relative_ref      {
         <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
     };
 
     token relative_part     {
-        '//' <authority> <.path_abempty>    |
-        <.path_absolute>                    |
-        <.path_noscheme>                    |
-        <.path_empty>
+        '//' <authority> <path_abempty>     |
+        <path_absolute>                     |
+        <path_noscheme>                     |
+        <path_empty>
     };
 
     token URI               {
@@ -25,10 +26,10 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
 
     token hier_part     {
-        '//' <authority> <.path_abempty>    |
-        <.path_absolute>                    |
-        <.path_rootless>                    |
-        <.path_empty>
+        '//' <authority> <path_abempty>     |
+        <path_absolute>                     |
+        <path_rootless>                     |
+        <path_empty>
     };
 
     token scheme            { <.uri_alpha> <[\-+.] +uri_alpha +digit>* };
@@ -46,10 +47,10 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
     token reg_name          { [ <+unreserved +sub_delims> | <.pct_encoded> ]* };
 
-    token path_abempty      { [ '/' <.segment> ]* };
-    token path_absolute     { '/' [ <.segment_nz> [ '/' <.segment> ]* ]? };
-    token path_noscheme     { <.segment_nz_nc> [ '/' <.segment> ]* };
-    token path_rootless     { <.segment_nz> [ '/' <.segment> ]* };
+    token path_abempty      { [ '/' <segment> ]* };
+    token path_absolute     { '/' [ <segment_nz> [ '/' <segment> ]* ]? };
+    token path_noscheme     { <segment_nz_nc> [ '/' <segment> ]* };
+    token path_rootless     { <segment_nz> [ '/' <segment> ]* };
     token path_empty        { <.pchar> ** 0 }; # yes - zero characters
 
     token   segment         { <.pchar>* };
@@ -72,10 +73,7 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     token sub_delims        { <[;!$&'()*+,=]> };
 
     token uri_alphanum      { <+uri_alpha +digit> };   
-    token uri_alpha         { <+lowalpha +upalpha> };
-
-    token lowalpha          { <[a..z]> };
-    token upalpha           { <[A..Z]> };
+    token uri_alpha         { <[A..Za..z]> };
 }
 
 # vim:ft=perl6

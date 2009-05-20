@@ -1,70 +1,85 @@
 class URI;
 
-# RAKUDO: Match object does not do assignment properly :(
-#my Match $.parts; dies in init with 'Type mismatch in assignment';
-# workaround:
 has $.uri;
+has $.path;
+has Bool $.is_absolute is ro;
+has $.scheme;
+has $.authority;
+has $.query;
+has $.frag;
 has @.chunks;
 
 method init ($str) {
-    use URI::Grammar;
+    use IETF::RFC_Grammar::URI;
 
     # clear string before parsing
     my $c_str = $str;
     $c_str .= subst(/^ \s* ['<' | '"'] /, '');
     $c_str .= subst(/ ['>' | '"'] \s* $/, '');
 
-    URI::Grammar.parse($c_str);
+    IETF::RFC_Grammar::URI.parse($c_str);
     unless $/ { die "Could not parse URI: $str" }
-
+    
+    $!uri = $!path = $!is_absolute = $!scheme = $!authority = $!query =
+        $!frag = undef;
+    @!chunks = undef;
+    
     $!uri = $/;
-    @!chunks = $/<path><chunk> // ('');
+    
+    my $comp_container = $/<URI_reference><URI> // $/<URI_reference><relative_ref>;
+    $!scheme = $comp_container<scheme>;
+    $!query = $comp_container<query>;
+    $!frag = $comp_container<fragment>;
+    $comp_container = $comp_container<hier_part> // $comp_container<relative_part>;
+
+    $!authority = $comp_container<authority>;
+    $!path =    $comp_container<path_abempty>       //
+                $comp_container<path_absolute>      ;
+    $!is_absolute = ?($!path // $.scheme);
+    
+    $!path //=  $comp_container<path_noscheme>      //
+                $comp_container<path_rootless>      ;
+
+    @!chunks = $!path<segment> // ('');
+    if my $first_chunk = $!path<segment_nz_nc> // $!path<segment_nz> {
+        unshift @!chunks, $first_chunk;
+    }
+    @!chunks ||= ('');
 }
 
 method scheme {
-    my $s = $.uri<scheme> // '';
-    # RAKUDO: return 1 if use ~ below die because can`t do lc on Math after
-    return ~$s.lc;
+    return ~$!scheme.lc;
 }
 
 method authority {
-    my $a = $.uri<authority> // '';
-    # RAKUDO: return 1 if use ~ below die because can`t do lc on Math after
-    return ~$a.lc;
+    return ~$!authority.lc;
 }
 
 method host {
-    #RAKUDO: $.uri<authority>[0]<host> return full <authority> now
-    my $h = ~$.uri<authority>[0]<host>;
-    return $h.lc // '';
+    return ($!authority<host> // '').lc;
 }
 
 method port {
-    # TODO: send rakudobug
-    # RAKUDO: $.uri<authority><port> return full <authority> now
-    # workaround:
-    item $.uri<authority>[0]<port> // '';
+    item $!authority<port> // '';
 }
 
 method path {
-    my $p = ~$.uri<path> // '';
-    return $p.lc;
+    return ~($!path // '').lc;
 }
 
 method absolute {
-    return ?($.uri<path><slash> // $.scheme);
+    return $!is_absolute;
 }
 
 method relative {
-    return !($.uri<path><slash> // $.scheme);
+    return ! $.absolute;
 }
 
 method query {
-    item $.uri<query> // '';
+    item ~($!query // '');
 }
 method frag {
-    my $f = $.uri<fragment> // '';
-    return ~$f.lc;
+    return ~($!frag // '').lc;
 }
 
 method fragment { $.frag }
