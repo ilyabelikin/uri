@@ -1,12 +1,12 @@
 class URI;
 
 has $.uri;
-has $.path;
-has Bool $.is_absolute is ro;
-has $.scheme;
-has $.authority;
-has $.query;
-has $.frag;
+has $!path;
+has Bool $!is_absolute is ro;
+has $!scheme;
+has $!authority;
+has $!query;
+has $!frag;
 has @.chunks;
 
 method init ($str) {
@@ -19,13 +19,13 @@ method init ($str) {
 
     IETF::RFC_Grammar::URI.parse($c_str);
     unless $/ { die "Could not parse URI: $str" }
-    
+
     $!uri = $!path = $!is_absolute = $!scheme = $!authority = $!query =
-        $!frag = undef;
-    @!chunks = undef;
-    
+        $!frag = Mu;
+    @!chunks = Nil;
+
     $!uri = $/;
-    
+
     my $comp_container = $/<URI_reference><URI> // $/<URI_reference><relative_ref>;
     $!scheme = $comp_container<scheme>;
     $!query = $comp_container<query>;
@@ -36,15 +36,18 @@ method init ($str) {
     $!path =    $comp_container<path_abempty>       //
                 $comp_container<path_absolute>      ;
     $!is_absolute = ?($!path // $.scheme);
-    
+
     $!path //=  $comp_container<path_noscheme>      //
                 $comp_container<path_rootless>      ;
 
-    @!chunks = $!path<segment> // ('');
+    @!chunks = $!path<segment>.list() // ('');
     if my $first_chunk = $!path<segment_nz_nc> // $!path<segment_nz> {
         unshift @!chunks, $first_chunk;
     }
-    @!chunks ||= ('');
+    if @!chunks.elems == 0 {
+        @!chunks = ('');
+    }
+#    @!chunks ||= ('');
 }
 
 method scheme {

@@ -15,7 +15,7 @@ is uri_escape('abcDEF?$%@h&m'), 'abcDEF%3F%24%25%40h%26m',
 
 is uri_escape('|abcå'), '%7Cabc%E5', 'basic latin-1 escape test';
 
-ok not defined uri_escape(undef), 'undef returns undef';
+ok not defined uri_escape(Str), 'undef returns undef';
 
 is uri_unescape('%7Cabc%E5'), '|abcå', 'basic latin-1 unescape test';
 
@@ -23,7 +23,7 @@ is uri_unescape("%40A%42", "CDE", "F%47H"), <@AB CDE FGH>,
     'unescape list';
 
 eval 'print uri_escape("abc" ~ chr(300))';
-ok  ~$! ~~ /^'Can\'t escape \\x{012C}, try uri_escape_utf8\(\) instead'/,
+ok  ~$! ~~ /^'Can\'t escape \x{012C}, try uri_escape_utf8() instead'/,
     'verify unicode limitation'
 
 =begin
