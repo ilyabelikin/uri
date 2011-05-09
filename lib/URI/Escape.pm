@@ -1,29 +1,32 @@
 use v6;
 
-package URI::Escape {    
-    
+package URI::Escape {
+
     use IETF::RFC_Grammar::URI;
-    
+
     our %escapes;
-    
+
     for 0 .. 255 -> $c {  # map broken in module / package ?
         %escapes{ chr($c) } = sprintf "%%%02X", $c
     }
 
     # in moving from RFC 2396 to RFC 3986 this selection of characters
     # may be due for an update ...
-    token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
+
+    # commented line below used to work ...
+#    token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
 
     sub uri_escape($s is copy) is export {
         my $rc;
         while $s {
-            if my $not_escape = $s ~~ /^<artifact_unreserved>+/ {
+            # regexes kludged for many broken things in rakudo
+            if my $not_escape = $s ~~ /^<[!*'()\-._~A..Za..z0..9]>+/ {
                $rc ~= $not_escape;
-               $s.=substr($not_escape.chars);                
+               $s.=substr($not_escape.chars);
             }
-            if my $escape = $s ~~ /^<- artifact_unreserved>+/ {
+            if my $escape = $s ~~ /^<- [!*'()\-._~A..Za..z0..9]>+/ {
                 $rc ~= ($escape.comb().map: {
-                    %escapes{ chr(ord($_)) } || # chr(ord()) ??? @#^^!! it works
+                    %escapes{ $_ } ||
                     die 'Can\'t escape \\' ~ sprintf('x{%04X}, try uri_escape_utf8() instead',
                         ord($_))
                }).join;                
@@ -43,7 +46,7 @@ package URI::Escape {
                         chr( :16($next_unescape[0]) );
                 $s.=substr($next_unescape.chars); 
             }
-            @rc.push( $rc ~ $s );
+            @rc.push( ($rc || '') ~ $s );
         }
         return @rc;
     }
