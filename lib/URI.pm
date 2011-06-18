@@ -1,32 +1,45 @@
 class URI;
 
-has $.uri;
+use IETF::RFC_Grammar;
+use IETF::RFC_Grammar::URI;
+use URI::Escape;
+
+has $.uri;  # use of this now deprecated
+
+has $.grammar is ro;
 has $!path;
 has Bool $!is_absolute is ro;
 has $!scheme;
 has $!authority;
 has $!query;
 has $!frag;
-has @.chunks;
+has %!query_form;
 
-method init ($str) {
-    use IETF::RFC_Grammar::URI;
+has @.segments;
+
+method parse (Str $str) {
 
     # clear string before parsing
     my $c_str = $str;
     $c_str .= subst(/^ \s* ['<' | '"'] /, '');
     $c_str .= subst(/ ['>' | '"'] \s* $/, '');
 
-    IETF::RFC_Grammar::URI.parse($c_str);
-    unless $/ { die "Could not parse URI: $str" }
-
     $!uri = $!path = $!is_absolute = $!scheme = $!authority = $!query =
         $!frag = Mu;
-    @!chunks = Nil;
+    %!query_form = @!segments = Nil;
 
-    $!uri = $/;
+    try {
+        $!grammar.parse($c_str);
+    }
+    CATCH {
+        die "Could not parse URI: $str";
+    }
 
-    my $comp_container = $/<URI_reference><URI> // $/<URI_reference><relative_ref>;
+    # now deprecated
+    $!uri = $!grammar.parse_result;
+
+    my $comp_container = $!grammar.parse_result<URI_reference><URI> //
+        $!grammar.parse_result<URI_reference><relative_ref>;
     $!scheme = $comp_container<scheme>;
     $!query = $comp_container<query>;
     $!frag = $comp_container<fragment>;
@@ -40,14 +53,67 @@ method init ($str) {
     $!path //=  $comp_container<path_noscheme>      //
                 $comp_container<path_rootless>      ;
 
-    @!chunks = $!path<segment>.list() // ('');
+    @!segments = $!path<segment>.list() // ('');
     if my $first_chunk = $!path<segment_nz_nc> // $!path<segment_nz> {
-        unshift @!chunks, $first_chunk;
+        unshift @!segments, $first_chunk;
     }
-    if @!chunks.elems == 0 {
-        @!chunks = ('');
+    if @!segments.elems == 0 {
+        @!segments = ('');
     }
-#    @!chunks ||= ('');
+#    @!segments ||= ('');
+
+    try {
+        %!query_form = split_query( ~$!query );
+    }
+    CATCH {
+        %!query_form = Nil;
+    }
+}
+
+sub split_query(Str $query) {
+    my %query_form;
+
+    for map { [split(/<[=]>/, $_) ]}, split(/<[&;]>/, $query) -> $qmap {
+        for (0, 1) -> $i { # could go past 1 in theory ...
+            $qmap[ $i ] ~~ s:g/\+/ /;
+            $qmap[ $i ] = uri_unescape($qmap[ $i ]);
+        }
+        if %query_form.exists($qmap[0]) {
+            if %query_form{ $qmap[0] } ~~ Array  {
+                %query_form{ $qmap[0] }.push($qmap[1])
+            }
+            else {
+                %query_form{ $qmap[0] } = [
+                    %query_form{ $qmap[0] }, $qmap[1]
+                ]
+            }
+        }
+        else {
+            %query_form{ $qmap[0]} = $qmap[1]
+        }
+    }
+
+    return %query_form;
+}
+
+# deprecated old call for parse
+method init ($str) {
+    $.parse($str);
+}
+
+# new can pass alternate grammars some day ...
+submethod BUILD {
+    $!grammar = IETF::RFC_Grammar.new('rfc3896');
+}
+
+method new(Str $str?) {
+    my $obj = self.bless(*);
+
+    if ($str.defined) {
+        $obj.parse($str);
+    }
+
+    return $obj;
 }
 
 method scheme {
@@ -94,21 +160,29 @@ method Str() {
     $str ~= $.path;
     $str ~= '?' ~ $.query if $.query;
     $str ~= '#' ~ $.frag if $.frag;
-    return $str; 
+    return $str;
 }
 
+# chunks now strongly deprecated
+# it's segments in p5 URI and segment is part of rfc so no more chunks soon!
+method chunks {
+    return @!segments;
+}
+
+method query_form {
+    return %!query_form;
+}
 
 =begin pod
 
 =head NAME
 
-URI — Uniform Resource Identifiers (absolute and relative) 
+URI — Uniform Resource Identifiers (absolute and relative)
 
 =head SYNOPSYS
 
     use URI;
-    my $u = URI.new;
-    $u.init('http://her.com/foo/bar?tag=woow#bla');
+    my $u = URI.new('http://her.com/foo/bar?tag=woow#bla');
 
     my $scheme = $u.scheme;
     my $authority = $u.authority;
@@ -117,9 +191,21 @@ URI — Uniform Resource Identifiers (absolute and relative)
     my $path = $u.path;
     my $query = $u.query;
     my $frag = $u.frag; # or $u.fragment;
+    my $tag = $u.query_form<tag>; # should be woow
 
     my $is_absolute = $u.absolute;
     my $is_relative = $u.relative;
+
+    # something p5 URI without grammar could not easily do !
+    my $host_in_grammar =
+        $u.grammar.parse_result<URI_reference><URI><hier_part><authority><host>;
+    if ($host_in_grammar<reg_name>) {
+        say 'Host looks like registered domain name - approved!';
+    }
+    else {
+        say 'Sorry we do not take ip address hosts at this time.';
+        say 'Please use registered domain name!';
+    }
 
 =end pod
 
