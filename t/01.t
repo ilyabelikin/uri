@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 38;
+plan 40;
 
 use URI;
 ok(1,'We use URI and we are still alive');
@@ -79,5 +79,14 @@ $u.parse('http://example.com:80/about?foo=cod&foo=trout#bar');
 is($u.query_form<foo>[0], 'cod', 'query param foo - el 1');
 is($u.query_form<foo>[1], 'trout', 'query param foo - el 2');
 
-
+my ($url_1_valid, $url_2_valid) = (1, 1);
+try {
+    my $u_v = URI.new('http:://www.perl.com', :is_validating<1>);
+    is($url_1_valid, 1, 'validating parser okd good URI');
+    $u_v = URI.new('http:://?#?#', :is_validating<1>);
+    CATCH {
+        $url_2_valid = 0;
+    }
+}
+is($url_2_valid, 0, 'validating parser rejected bad URI');
 # vim:ft=perl6

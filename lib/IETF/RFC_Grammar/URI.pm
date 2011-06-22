@@ -7,6 +7,7 @@ use IETF::RFC_Grammar::IPv6;
 
 grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     token TOP               { <URI_reference> };
+    token TOP_validating    { ^ <URI_reference> $ };
     token URI_reference     { <URI> | <relative_ref> };
 
     token absolute_URI      { <scheme> ':' <.hier_part> [ '?' query ]? };

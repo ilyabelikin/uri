@@ -4,9 +4,8 @@ use IETF::RFC_Grammar;
 use IETF::RFC_Grammar::URI;
 use URI::Escape;
 
-has $.uri;  # use of this now deprecated
-
 has $.grammar is ro;
+has Bool $.is_validating is rw = False;
 has $!path;
 has Bool $!is_absolute is ro;
 has $!scheme;
@@ -14,6 +13,7 @@ has $!authority;
 has $!query;
 has $!frag;
 has %!query_form;
+has $!uri;  # use of this now deprecated
 
 has @.segments;
 
@@ -28,12 +28,20 @@ method parse (Str $str) {
         $!frag = Mu;
     %!query_form = @!segments = Nil;
 
+    my $note_caught;
     try {
-        $!grammar.parse($c_str);
+        if ($.is_validating) {
+            $!grammar.parse_validating($c_str);
+        }
+        else {
+            $!grammar.parse($c_str);
+        }
+
+        CATCH {
+            $note_caught++; # exception handling still needs some work ...
+        }
     }
-    CATCH {
-        die "Could not parse URI: $str";
-    }
+    if $note_caught {die "Could not parse URI: $str"  }
 
     # now deprecated
     $!uri = $!grammar.parse_result;
@@ -64,9 +72,9 @@ method parse (Str $str) {
 
     try {
         %!query_form = split_query( ~$!query );
-    }
-    CATCH {
-        %!query_form = Nil;
+        CATCH {
+            %!query_form = Nil;
+        }
     }
 }
 
@@ -98,18 +106,23 @@ sub split_query(Str $query) {
 
 # deprecated old call for parse
 method init ($str) {
+    warn "init method now deprecated in favor of parse method";
     $.parse($str);
 }
 
 # new can pass alternate grammars some day ...
-submethod BUILD {
+submethod BUILD($!is_validating?) {
     $!grammar = IETF::RFC_Grammar.new('rfc3896');
 }
 
-method new(Str $str?) {
+method new(Str $str?, :$is_validating) {
     my $obj = self.bless(*);
 
-    if ($str.defined) {
+    if $is_validating.defined {
+        $obj.is_validating = $is_validating;
+    }
+
+    if $str.defined {
         $obj.parse($str);
     }
 
@@ -166,7 +179,13 @@ method Str() {
 # chunks now strongly deprecated
 # it's segments in p5 URI and segment is part of rfc so no more chunks soon!
 method chunks {
+    warn "chunks attribute now deprecated in favor of segments";
     return @!segments;
+}
+
+method uri {
+    warn "uri attribute now deprecated in favor of .grammar.parse_result";
+    return $!uri;
 }
 
 method query_form {
@@ -207,6 +226,8 @@ URI — Uniform Resource Identifiers (absolute and relative)
         say 'Please use registered domain name!';
     }
 
+    # require whole string matches URI and throw exception otherwise ..
+    my $u_v = URI.new('http://?#?#', :is_validating<1>);# throw exception
 =end pod
 
 

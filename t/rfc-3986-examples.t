@@ -3,7 +3,7 @@ use Test;
 plan 22;
 
 use URI;
-my $u = URI.new('ftp://ftp.is.co.za/rfc/rfc1808.txt');
+my $u = URI.new('ftp://ftp.is.co.za/rfc/rfc1808.txt', :validating<1>);
 is($u.scheme, 'ftp', 'ftp scheme');
 is($u.host, 'ftp.is.co.za', 'ftp host');
 is($u.path, '/rfc/rfc1808.txt', 'ftp path');

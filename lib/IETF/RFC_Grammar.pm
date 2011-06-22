@@ -16,8 +16,14 @@ has $.grammar;
 has $.parse_result;
 
 method parse($parse_str) {
-    $!grammar.parse($parse_str);
-    unless $/ { die "Parse failed" } # very weak I think
+    $!grammar.parse($parse_str)
+        or die "Parse failed";
+    $!parse_result = $/
+}
+
+method parse_validating($parse_str) {
+    $!grammar.parse($parse_str, :rule<TOP_validating>)
+        or die "Parse failed";
     $!parse_result = $/
 }
 
