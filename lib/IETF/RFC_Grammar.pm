@@ -16,15 +16,12 @@ has $.grammar;
 has $.parse_result;
 
 method parse($parse_str) {
-    $!grammar.parse($parse_str)
-        or die "Parse failed";
-    $!parse_result = $/
+    $!parse_result = $!grammar.parse($parse_str) or die "Parse failed";
 }
 
 method parse_validating($parse_str) {
-    $!grammar.parse($parse_str, :rule<TOP_validating>)
+    $!parse_result = $!grammar.parse($parse_str, :rule<TOP_validating>)
         or die "Parse failed";
-    $!parse_result = $/
 }
 
 submethod BUILD($!rfc, $!grammar) {}
