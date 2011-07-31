@@ -115,15 +115,15 @@ submethod BUILD($!is_validating?) {
     $!grammar = IETF::RFC_Grammar.new('rfc3896');
 }
 
-method new(Str $str?, :$is_validating) {
+method new(Str $uri_pos1?, Str :$uri, :$is_validating) {
     my $obj = self.bless(*);
 
     if $is_validating.defined {
         $obj.is_validating = $is_validating;
     }
 
-    if $str.defined {
-        $obj.parse($str);
+    if $uri.defined or $uri_pos1.defined {
+        $obj.parse($uri.defined ?? $uri !! $uri_pos1);
     }
 
     return $obj;

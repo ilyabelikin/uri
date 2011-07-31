@@ -21,7 +21,8 @@ is($u.segments[1], 'us', 'second chunk');
 is( ~$u, 'http://example.com:80/about/us?foo#bar',
     'Complete path stringification');
 
-$u.parse('https://eXAMplE.COM');
+# allow uri as named argument too
+$u = URI.new(uri => 'https://eXAMplE.COM');
 
 is($u.scheme, 'https', 'scheme');
 is($u.host, 'example.com', 'host');
@@ -42,8 +43,10 @@ nok($u.absolute, 'not absolute path');
 
 is($u.segments[0], 'foo', 'first segment');
 is($u.segments[1], 'bar', 'second segment');
-is($u.segments[*-1], 'baz', 'last seement');
+is($u.segments[*-1], 'baz', 'last segment');
 
+# actual uri parameter not required
+$u = URI.new;
 $u.parse('http://foo.com');
 
 ok($u.segments.list.perl eq '[""]', ".segments return [''] for empty path");
