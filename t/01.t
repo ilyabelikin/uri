@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 40;
+plan 43;
 
 use URI;
 ok(1,'We use URI and we are still alive');
@@ -28,6 +28,8 @@ is($u.scheme, 'https', 'scheme');
 is($u.host, 'example.com', 'host');
 is( "$u", 'https://example.com',
     'https://eXAMplE.COM stringifies to https://example.com');
+is($u.port, 443, 'default https port');
+is($u._port, Int, 'no specified port');
 
 $u.parse('/foo/bar/baz');
 
@@ -52,6 +54,7 @@ $u.parse('http://foo.com');
 ok($u.segments.list.perl eq '[""]', ".segments return [''] for empty path");
 ok($u.absolute, 'http://foo.com has an absolute path');
 nok($u.relative, 'http://foo.com does not have a relative path');
+is($u.port, 80, 'default http port');
 
 # test URI parsing with <> or "" and spaces
 $u.parse("<http://foo.com> ");
