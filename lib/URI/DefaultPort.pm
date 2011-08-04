@@ -27,12 +27,9 @@ package URI::DefaultPort {
 		sips	=>		5061
 	);
 	
-	# todo fix this so it isn't export
-	sub scheme_port(Str $scheme) is export {
+	our sub scheme_port(Str $scheme) {
 		# guessing the // Int should be unnecessary some day ...
-		my $rc =  %default_port{$scheme} // Int;
-		say "scheme_port returning ", $rc.perl, " for ", $scheme.perl;
-		$rc;
+		return  %default_port{$scheme} // Int;
 	}
 
 }
