@@ -3,7 +3,7 @@ class URI;
 use IETF::RFC_Grammar;
 use IETF::RFC_Grammar::URI;
 use URI::Escape;
-use URI::DefaultPort;
+need URI::DefaultPort;
 
 has $.grammar is ro;
 has Bool $.is_validating is rw = False;
@@ -144,13 +144,12 @@ method host {
 }
 
 method _port {
-	# todo fix || to //
-    my $rc = item $!authority<port> || Int;
-	$rc;
+	# port 0 is off limits but - todo why doesn't empty port return Nil
+    item $!authority<port> || Int;
 }
 
 method port {
-	my $rc = $._port // scheme_port($.scheme);
+	$._port // URI::DefaultPort::scheme_port($.scheme);
 }
 
 method path {
