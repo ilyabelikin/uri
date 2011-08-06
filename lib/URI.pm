@@ -123,8 +123,10 @@ method new(Str $uri_pos1?, Str :$uri, :$is_validating) {
         $obj.is_validating = $is_validating;
     }
 
-	# todo add error for both defined
-    if $uri.defined or $uri_pos1.defined {
+    if $uri.defined and $uri_pos1.defined {
+        die "Please specify the uri by name or position but not both.";
+    }
+    elsif $uri.defined or $uri_pos1.defined {
         $obj.parse($uri.defined ?? $uri !! $uri_pos1);
     }
 
@@ -144,7 +146,7 @@ method host {
 }
 
 method _port {
-	# port 0 is off limits but - todo why doesn't empty port return Nil
+	# port 0 is off limits and see also RT 96424
     item $!authority<port> || Int;
 }
 
