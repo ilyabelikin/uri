@@ -29,7 +29,7 @@ package URI::DefaultPort {
 	
 	our sub scheme_port(Str $scheme) {
 		# guessing the // Int should be unnecessary some day ...
-		return  %default_port{$scheme} // Int;
+		return  %default_port{$scheme}.Int // Int;
 	}
 
 }

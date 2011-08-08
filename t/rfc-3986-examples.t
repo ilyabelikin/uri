@@ -16,12 +16,12 @@ is($u.path, '/rfc/rfc2396.txt', 'http path');
 $u.parse('ldap://[2001:db8::7]/c=GB?objectClass?one');
 is($u.scheme, 'ldap', 'ldap scheme');
 is($u.host, '[2001:db8::7]', 'ldap host');
-is($u.path, '/c=gb', 'ldap path');
+is($u.path, '/c=GB', 'ldap path');
 is($u.query, 'objectClass?one', 'ldap query');
 
 $u.parse('mailto:John.Doe@example.com');
 is($u.scheme, 'mailto', 'mailto scheme');
-is($u.path, 'john.doe@example.com', 'news path');
+is($u.path, 'John.Doe@example.com', 'news path');
 
 $u.parse('news:comp.infosystems.www.servers.unix');
 is($u.scheme, 'news', 'news scheme');

@@ -47,23 +47,23 @@ method parse (Str $str) {
     # now deprecated
     $!uri = $!grammar.parse_result;
 
-    my $comp_container = $!grammar.parse_result<URI_reference><URI> //
+    my $comp_container = $!grammar.parse_result<URI_reference><URI> ||
         $!grammar.parse_result<URI_reference><relative_ref>;
     $!scheme = $comp_container<scheme>;
     $!query = $comp_container<query>;
     $!frag = $comp_container<fragment>;
-    $comp_container = $comp_container<hier_part> // $comp_container<relative_part>;
+    $comp_container = $comp_container<hier_part> || $comp_container<relative_part>;
 
     $!authority = $comp_container<authority>;
-    $!path =    $comp_container<path_abempty>       //
+    $!path =    $comp_container<path_abempty>       ||
                 $comp_container<path_absolute>      ;
-    $!is_absolute = ?($!path // $.scheme);
+    $!is_absolute = ?($!path || $!scheme);
 
-    $!path //=  $comp_container<path_noscheme>      //
+    $!path ||=  $comp_container<path_noscheme>      ||
                 $comp_container<path_rootless>      ;
 
-    @!segments = $!path<segment>.list() // ('');
-    if my $first_chunk = $!path<segment_nz_nc> // $!path<segment_nz> {
+    @!segments = $!path<segment>.list() || ('');
+    if my $first_chunk = $!path<segment_nz_nc> || $!path<segment_nz> {
         unshift @!segments, $first_chunk;
     }
     if @!segments.elems == 0 {
@@ -142,20 +142,25 @@ method authority {
 }
 
 method host {
-    return ($!authority<host> // '').lc;
+    return ($!authority<host> || '').lc;
+}
+
+method default_port {
+	URI::DefaultPort::scheme_port($.scheme)
 }
 
 method _port {
 	# port 0 is off limits and see also RT 96424
-    item $!authority<port> || Int;
+	# $!authority<port>.Int doesn't work because of RT 96472
+    $!authority<port> ?? ($!authority<port> ~ '').Int !! Int;
 }
 
 method port {
-	$._port // URI::DefaultPort::scheme_port($.scheme);
+	$._port // $.default_port;
 }
 
 method path {
-    return ~($!path // '').lc;
+    return ~($!path || '');
 }
 
 method absolute {
@@ -167,10 +172,16 @@ method relative {
 }
 
 method query {
-    item ~($!query // '');
+    item ~($!query || '');
 }
+
+method path_query {
+	$.query ?? $.path ~ '?' ~ $.query !! $.path
+}
+
+
 method frag {
-    return ~($!frag // '').lc;
+    return ~($!frag || '').lc;
 }
 
 method fragment { $.frag }
