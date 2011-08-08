@@ -146,17 +146,17 @@ method host {
 }
 
 method default_port {
-	URI::DefaultPort::scheme_port($.scheme)
+    URI::DefaultPort::scheme_port($.scheme)
 }
 
 method _port {
-	# port 0 is off limits and see also RT 96424
-	# $!authority<port>.Int doesn't work because of RT 96472
+    # port 0 is off limits and see also RT 96424
+    # $!authority<port>.Int doesn't work because of RT 96472
     $!authority<port> ?? ($!authority<port> ~ '').Int !! Int;
 }
 
 method port {
-	$._port // $.default_port;
+    $._port // $.default_port;
 }
 
 method path {
@@ -176,7 +176,7 @@ method query {
 }
 
 method path_query {
-	$.query ?? $.path ~ '?' ~ $.query !! $.path
+    $.query ?? $.path ~ '?' ~ $.query !! $.path
 }
 
 
