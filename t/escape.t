@@ -19,6 +19,7 @@ ok not defined uri_escape(Str), 'undef returns undef';
 
 is uri_unescape(no_utf8 => True, '%7C%25abc%E5'), '|%abcå', 'basic latin-1 unescape test';
 is uri_unescape('%7C%25abc%C3%A5'), '|%abcå', 'basic utf8 unescape test';
+my $x = uri_unescape('%7C%25abc%C3%A5');
 
 is uri_unescape("%40A%42", "CDE", "F%47++H"), ['@AB', 'CDE', 'FG  H'],
     'unescape list';

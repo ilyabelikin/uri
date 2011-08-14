@@ -68,33 +68,33 @@ package URI::Escape {
                 $last_pos = $/.to;
             }
             $rc ~= $s.substr($last_pos);
-            $rc ~~ s:g/\+/ /;
+            $rc .= trans('+' => ' ');
             @rc.push($rc);
         }
-        return @rc;
+        return do given @rc.elems { # this might be simplified some day
+			when 0 { Nil }
+			when 1 { @rc[0] }
+			default { @rc }
+		}
     }
     
-    sub uri_unescape_utf8 () {
-    }
+	# Stole parts from Masak November::CGI and parts from Parrot's UTF-8 decode
+	sub utf8_octets_2_codepoint(@octets) {
+		if @octets[ 0 ] < 0x80 { # completeness
+			return @octets[0], 1
+		}
 
-}
+		my $len = 2;    
 
-# Stole parts from Masak November::CGI and parts from Parrot's UTF-8 decode
-sub utf8_octets_2_codepoint(@octets) {
-    if @octets[ 0 ] < 0x80 { # completeness
-        return @octets[0], 1
-    }
+		while 0x80 +> $len +& @octets[0] and ++$len <= 6 {}
+		
+		my $max_shift = 6 * ($len -1);
+		my $code_point = reduce { 
+			$^a + @octets[ $^b ] +& 0x3F +< ($max_shift - 6 * $^b)
+		}, 0x7F +> $len +& @octets[0] +< $max_shift, 1 ..^ $len;
 
-    my $len = 2;    
-
-    while 0x80 +> $len +& @octets[0] and ++$len <= 6 {}
-	
-    my $max_shift = 6 * ($len -1);
-    my $code_point = reduce { 
-        $^a + @octets[ $^b ] +& 0x3F +< ($max_shift - 6 * $^b)
-    }, 0x7F +> $len +& @octets[0] +< $max_shift, 1 ..^ $len;
-
-    return $code_point, $len;
+		return $code_point, $len;
+	}	
 }
 
 =begin pod

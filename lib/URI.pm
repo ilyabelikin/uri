@@ -79,12 +79,11 @@ method parse (Str $str) {
     }
 }
 
-sub split_query(Str $query) {
+our sub split_query(Str $query) {
     my %query_form;
 
     for map { [split(/<[=]>/, $_) ]}, split(/<[&;]>/, $query) -> $qmap {
         for (0, 1) -> $i { # could go past 1 in theory ...
-            $qmap[ $i ] ~~ s:g/\+/ /;
             $qmap[ $i ] = uri_unescape($qmap[ $i ]);
         }
         if %query_form.exists($qmap[0]) {
