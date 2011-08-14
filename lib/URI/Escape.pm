@@ -28,8 +28,8 @@ package URI::Escape {
                 $rc ~= ($escape.comb().map: {
                     %escapes{ $_ } ||
                     die 'Can\'t escape \\' ~ sprintf(
-						'x{%04X}, try uri_escape_utf8() some day instead', 
-						ord($_))
+                        'x{%04X}, try uri_escape_utf8() some day instead', 
+                        ord($_))
                }).join;                
                $s.=substr($escape.chars);
             }
@@ -39,9 +39,9 @@ package URI::Escape {
     }
 
     # todo - automatic invalid UTF-8 detection
-	# see http://www.w3.org/International/questions/qa-forms-utf-8
-	# 	find first sequence of %[89ABCDEF]<.xdigit>
-	# 		use algorithm from url to determine if it's valid UTF-8
+    # see http://www.w3.org/International/questions/qa-forms-utf-8
+    #     find first sequence of %[89ABCDEF]<.xdigit>
+    #         use algorithm from url to determine if it's valid UTF-8
     sub uri_unescape(Str *@to_unesc, Bool :$no_utf8 = False) is export {
         my @rc;
         for @to_unesc -> $s is copy {
@@ -72,29 +72,29 @@ package URI::Escape {
             @rc.push($rc);
         }
         return do given @rc.elems { # this might be simplified some day
-			when 0 { Nil }
-			when 1 { @rc[0] }
-			default { @rc }
-		}
+            when 0 { Nil }
+            when 1 { @rc[0] }
+            default { @rc }
+        }
     }
     
-	# Stole parts from Masak November::CGI and parts from Parrot's UTF-8 decode
-	sub utf8_octets_2_codepoint(@octets) {
-		if @octets[ 0 ] < 0x80 { # completeness
-			return @octets[0], 1
-		}
+    # Stole parts from Masak November::CGI and parts from Parrot's UTF-8 decode
+    sub utf8_octets_2_codepoint(@octets) {
+        if @octets[ 0 ] < 0x80 { # completeness
+            return @octets[0], 1
+        }
 
-		my $len = 2;    
+        my $len = 2;    
 
-		while 0x80 +> $len +& @octets[0] and ++$len <= 6 {}
-		
-		my $max_shift = 6 * ($len -1);
-		my $code_point = reduce { 
-			$^a + @octets[ $^b ] +& 0x3F +< ($max_shift - 6 * $^b)
-		}, 0x7F +> $len +& @octets[0] +< $max_shift, 1 ..^ $len;
+        while 0x80 +> $len +& @octets[0] and ++$len <= 6 {}
+        
+        my $max_shift = 6 * ($len -1);
+        my $code_point = reduce { 
+            $^a + @octets[ $^b ] +& 0x3F +< ($max_shift - 6 * $^b)
+        }, 0x7F +> $len +& @octets[0] +< $max_shift, 1 ..^ $len;
 
-		return $code_point, $len;
-	}	
+        return $code_point, $len;
+    }    
 }
 
 =begin pod
