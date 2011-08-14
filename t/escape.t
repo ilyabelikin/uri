@@ -4,7 +4,7 @@ use v6;
 # in the CPAN URI distribution
 
 use Test;
-plan 7;
+plan 8;
 
 use URI::Escape;
 
@@ -17,35 +17,14 @@ is uri_escape('|abcå'), '%7Cabc%E5', 'basic latin-1 escape test';
 
 ok not defined uri_escape(Str), 'undef returns undef';
 
-is uri_unescape('%7Cabc%E5'), '|abcå', 'basic latin-1 unescape test';
+is uri_unescape(no_utf8 => True, '%7C%25abc%E5'), '|%abcå', 'basic latin-1 unescape test';
+is uri_unescape('%7C%25abc%C3%A5'), '|%abcå', 'basic utf8 unescape test';
 
-is uri_unescape("%40A%42", "CDE", "F%47H"), <@AB CDE FGH>,
+is uri_unescape("%40A%42", "CDE", "F%47++H"), ['@AB', 'CDE', 'FG  H'],
     'unescape list';
 
 eval 'print uri_escape("abc" ~ chr(300))';
-ok  ~$! ~~ /^'Can\'t escape \x{012C}, try uri_escape_utf8() instead'/,
+ok  ~$! ~~ /^'Can\'t escape \x{012C}, try uri_escape_utf8() some day instead'/,
     'verify unicode limitation'
-
-=begin
-
-# todo tests
-
-print "not " unless uri_escape("abc", "b-d") eq "a%62%63";
-print "ok 2\n";
-
-use URI::Escape :escapes;
-
-print "not" unless $escapes{"%"} eq "%25";
-print "ok 6\n";
-
-use URI::Escape qw(uri_escape_utf8);
-
-print "not " unless uri_escape_utf8("|abcå") eq "%7Cabc%C3%A5";
-print "ok 7\n";
-
-print "not " unless uri_escape_utf8(chr(0xFFF)) eq "%E0%BF%BF";
-print "ok 9\n";
-
-=end
 
 # vim:ft=perl6
