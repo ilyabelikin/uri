@@ -37,8 +37,12 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     
     token authority         { [ <userinfo> '@' ]? <host> [ ':' <port> ]? };
     token userinfo          {
-        [ <[:] +unreserved +sub_delims> | <.pct_encoded> ]*
-    };    
+        [ ':' | <likely_userinfo_component> ]*
+    };
+    # the rfc refers to username:password as deprecated
+    token likely_userinfo_component {
+        <+unreserved +sub_delims>+ | <.pct_encoded>+
+    };
     token host              { <IPv4address> | <IP_literal> | <reg_name> };
     token port              { <.digit>* };
 
