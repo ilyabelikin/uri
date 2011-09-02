@@ -16,24 +16,25 @@ package URI::Escape {
     # commented line below used to work ...
 #    token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
 
-    sub uri_escape($s is copy) is export {
+    sub uri_escape($s is copy, Bool :$no_utf8 = False) is export {
         my $rc;
-        while $s {
-            # regexes kludged for many broken things in rakudo
-            if my $not_escape = $s ~~ /^<[!*'()\-._~A..Za..z0..9]>+/ {
-               $rc ~= $not_escape;
-               $s.=substr($not_escape.chars);
-            }
-            if my $escape = $s ~~ /^<- [!*'()\-._~A..Za..z0..9]>+/ {
-                $rc ~= ($escape.comb().map: {
-                    %escapes{ $_ } ||
-                    die 'Can\'t escape \\' ~ sprintf(
-                        'x{%04X}, try uri_escape_utf8() some day instead', 
-                        ord($_))
-               }).join;                
-               $s.=substr($escape.chars);
-            }
+        my $last_pos = 0;
+        
+        while my $escape = $s ~~ m:c/<- [!*'()\-._~A..Za..z0..9]>+/ {
+            $rc ~=  $s.substr($last_pos, $/.from - $last_pos);
+            $rc ~= ($escape.comb().map: {
+                ( $no_utf8 || ! 0x80 +& ord($_) ) ?? %escapes{ $_ } !!
+                    do {
+                        my $buf = $_.encode;
+                        for (0 ..^ $buf.elems) {
+                            sprintf "%%%02X", $buf[ $_ ]
+                        }
+                    }
+           }).join;            
+           $last_pos = $/.to;           
         }
+        # $s.defined test needed because of bug fixed in nom
+        if $s.defined and $s.chars > $last_pos { $rc ~= $s.substr($last_pos) }
         
         return $rc;
     }
@@ -84,9 +85,9 @@ package URI::Escape {
             return @octets[0], 1
         }
 
-        my $len = 2;    
+        my $len = 1;    
 
-        while 0x80 +> $len +& @octets[0] and ++$len <= 6 {}
+        while 0x80 +> ++$len +& @octets[0] and $len < 6 {}
         
         my $max_shift = 6 * ($len -1);
         my $code_point = reduce { 
