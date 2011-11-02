@@ -7,7 +7,7 @@ package URI::Escape {
     our %escapes;
 
     for 0 .. 255 -> $c {  # map broken in module / package ?
-        %escapes{ chr($c) } = sprintf "%%%02X", $c
+        %escapes{ chr($c) } = sprintf '%%%02X', $c
     }
 
     # in moving from RFC 2396 to RFC 3986 this selection of characters
@@ -27,7 +27,7 @@ package URI::Escape {
                     do {
                         my $buf = $_.encode;
                         for (0 ..^ $buf.elems) {
-                            sprintf "%%%02X", $buf[ $_ ]
+                            sprintf '%%%02X', $buf[ $_ ]
                         }
                     }
            }).join;            
@@ -43,7 +43,7 @@ package URI::Escape {
     # see http://www.w3.org/International/questions/qa-forms-utf-8
     #     find first sequence of %[89ABCDEF]<.xdigit>
     #         use algorithm from url to determine if it's valid UTF-8
-    sub uri_unescape(Str *@to_unesc, Bool :$no_utf8 = False) is export {
+    sub uri_unescape(*@to_unesc, Bool :$no_utf8 = False) is export {
         my @rc;
         for @to_unesc -> $s is copy {
             my $rc = '';
