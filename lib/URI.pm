@@ -29,7 +29,6 @@ method parse (Str $str) {
         $!frag = Mu;
     %!query_form = @!segments = Nil;
 
-    my $note_caught;
     try {
         if ($.is_validating) {
             $!grammar.parse_validating($c_str);
@@ -39,10 +38,11 @@ method parse (Str $str) {
         }
 
         CATCH {
-            $note_caught++; # exception handling still needs some work ...
+            default {
+                die "Could not parse URI: $str"
+            }
         }
     }
-    if $note_caught {die "Could not parse URI: $str"  }
 
     # now deprecated
     $!uri = $!grammar.parse_result;
