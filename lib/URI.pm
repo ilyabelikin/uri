@@ -5,10 +5,10 @@ use IETF::RFC_Grammar::URI;
 use URI::Escape;
 need URI::DefaultPort;
 
-has $.grammar is ro;
+has $.grammar;
 has Bool $.is_validating is rw = False;
 has $!path;
-has Bool $!is_absolute is ro;
+has Bool $!is_absolute;
 has $!scheme;
 has $!authority;
 has $!query;
