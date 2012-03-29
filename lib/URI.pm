@@ -74,7 +74,9 @@ method parse (Str $str) {
     try {
         %!query_form = split_query( ~$!query );
         CATCH {
-            %!query_form = Nil;
+            default {
+                %!query_form = ();
+            }
         }
     }
 }
