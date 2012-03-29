@@ -128,7 +128,7 @@ method new(Str $uri_pos1?, Str :$uri, :$is_validating) {
         die "Please specify the uri by name or position but not both.";
     }
     elsif $uri.defined or $uri_pos1.defined {
-        $obj.parse($uri.defined ?? $uri !! $uri_pos1);
+        $obj.parse($uri // $uri_pos1);
     }
 
     return $obj;
