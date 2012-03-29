@@ -6,9 +6,9 @@ use URI::Escape;
 need URI::DefaultPort;
 
 has $.grammar;
-has Bool $.is_validating is rw = False;
+has $.is_validating is rw = False;
 has $!path;
-has Bool $!is_absolute;
+has $!is_absolute;
 has $!scheme;
 has $!authority;
 has $!query;
@@ -111,7 +111,7 @@ method init ($str) {
 }
 
 # new can pass alternate grammars some day ...
-submethod BUILD($!is_validating?) {
+submethod BUILD(:$!is_validating) {
     $!grammar = IETF::RFC_Grammar.new('rfc3896');
 }
 
@@ -119,7 +119,7 @@ method new(Str $uri_pos1?, Str :$uri, :$is_validating) {
     my $obj = self.bless(*);
 
     if $is_validating.defined {
-        $obj.is_validating = $is_validating;
+        $obj.is_validating = ?$is_validating;
     }
 
     if $uri.defined and $uri_pos1.defined {

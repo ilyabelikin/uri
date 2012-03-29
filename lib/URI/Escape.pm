@@ -53,7 +53,7 @@ package URI::Escape {
                 $rc ~=  $s.substr($last_pos, $/.from - $last_pos);
                 
                 # should be a better way with list context
-                my @encoded_octets = map { :16( .value ) }, $/.caps;
+                my @encoded_octets = map { :16( ~.value ) }, $/.caps;
                 # common case optimization
                 while @encoded_octets and ($no_utf8 or  @encoded_octets[0] < 0x80) {
                     $rc ~= chr(shift @encoded_octets);
