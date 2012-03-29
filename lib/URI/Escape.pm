@@ -4,11 +4,10 @@ package URI::Escape {
 
     use IETF::RFC_Grammar::URI;
 
-    my %escapes = ();
-
-    for 0 .. 255 -> $c {  # map broken in module / package ?
-        %escapes{ chr($c) } = sprintf '%%%02X', $c
-    }
+    my %escapes = (^256).map: {
+        ;
+        .chr => sprintf '%%%02X', $_
+    };
 
     # in moving from RFC 2396 to RFC 3986 this selection of characters
     # may be due for an update ...
