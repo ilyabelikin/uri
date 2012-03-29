@@ -91,7 +91,7 @@ try {
     is($url_1_valid, 1, 'validating parser okd good URI');
     $u_v = URI.new('http:://?#?#', :is_validating<1>);
     CATCH {
-        $url_2_valid = 0;
+        default { $url_2_valid = 0 }
     }
 }
 is($url_2_valid, 0, 'validating parser rejected bad URI');
