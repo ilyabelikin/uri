@@ -4,7 +4,7 @@ package URI::Escape {
 
     use IETF::RFC_Grammar::URI;
 
-    our %escapes;
+    my %escapes = ();
 
     for 0 .. 255 -> $c {  # map broken in module / package ?
         %escapes{ chr($c) } = sprintf '%%%02X', $c
