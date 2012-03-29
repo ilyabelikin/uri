@@ -51,7 +51,7 @@ is($u.segments[*-1], 'baz', 'last segment');
 $u = URI.new;
 $u.parse('http://foo.com');
 
-ok($u.segments.list.perl eq '[""]', ".segments return [''] for empty path");
+ok($u.segments == 1 && $u.segments[0] eq '', ".segments return [''] for empty path");
 ok($u.absolute, 'http://foo.com has an absolute path');
 nok($u.relative, 'http://foo.com does not have a relative path');
 is($u.port, 80, 'default http port');
