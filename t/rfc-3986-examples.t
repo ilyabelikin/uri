@@ -17,6 +17,7 @@ $u.parse('ldap://[2001:db8::7]/c=GB?objectClass?one');
 is($u.scheme, 'ldap', 'ldap scheme');
 is($u.host, '[2001:db8::7]', 'ldap host');
 is($u.path, '/c=GB', 'ldap path');
+todo('LDAP query');
 is($u.query, 'objectClass?one', 'ldap query');
 
 $u.parse('mailto:John.Doe@example.com');
