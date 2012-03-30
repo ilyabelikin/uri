@@ -4,11 +4,10 @@ package URI::Escape {
 
     use IETF::RFC_Grammar::URI;
 
-    our %escapes;
-
-    for 0 .. 255 -> $c {  # map broken in module / package ?
-        %escapes{ chr($c) } = sprintf '%%%02X', $c
-    }
+    my %escapes = (^256).map: {
+        ;
+        .chr => sprintf '%%%02X', $_
+    };
 
     # in moving from RFC 2396 to RFC 3986 this selection of characters
     # may be due for an update ...
@@ -16,13 +15,11 @@ package URI::Escape {
     # commented line below used to work ...
 #    token artifact_unreserved {<[!*'()] +IETF::RFC_Grammar::URI::unreserved>};
 
-    sub uri_escape($s is copy, Bool :$no_utf8 = False) is export {
-        my $rc;
-        my $last_pos = 0;
-        
-        while my $escape = $s ~~ m:c/<- [!*'()\-._~A..Za..z0..9]>+/ {
-            $rc ~=  $s.substr($last_pos, $/.from - $last_pos);
-            $rc ~= ($escape.comb().map: {
+    sub uri_escape($s, Bool :$no_utf8 = False) is export {
+        return $s unless defined $s;
+        $s.subst(:g, rx/<- [!*'()\-._~A..Za..z0..9]>+/,
+            -> $escape {
+            ($escape.Str.comb.map: {
                 ( $no_utf8 || ! 0x80 +& ord($_) ) ?? %escapes{ $_ } !!
                     do {
                         my $buf = $_.encode;
@@ -31,12 +28,7 @@ package URI::Escape {
                         }
                     }
            }).join;            
-           $last_pos = $/.to;           
-        }
-        # $s.defined test needed because of bug fixed in nom
-        if $s.defined and $s.chars > $last_pos { $rc ~= $s.substr($last_pos) }
-        
-        return $rc;
+        });
     }
 
     # todo - automatic invalid UTF-8 detection
@@ -53,7 +45,7 @@ package URI::Escape {
                 $rc ~=  $s.substr($last_pos, $/.from - $last_pos);
                 
                 # should be a better way with list context
-                my @encoded_octets = map { :16( .value ) }, $/.caps;
+                my @encoded_octets = map { :16( ~.value ) }, $/.caps;
                 # common case optimization
                 while @encoded_octets and ($no_utf8 or  @encoded_octets[0] < 0x80) {
                     $rc ~= chr(shift @encoded_octets);
