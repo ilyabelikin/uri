@@ -23,7 +23,9 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
 
     token URI               {
-        <scheme> ':' <hier_part> [ '?' <query> ]? [ '#' <fragment> ]?
+        # should be [ '?' <query> ]?
+        # but that triggers a rakudobug (RT #112148)
+        <scheme> ':' <hier_part> [ '?' <query> | <?> ] <?before .?> [ '#' <fragment> ]?
     };
 
     token hier_part     {
