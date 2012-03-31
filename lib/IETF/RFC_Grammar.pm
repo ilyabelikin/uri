@@ -24,7 +24,7 @@ method parse_validating($parse_str) {
         or die "Parse failed";
 }
 
-submethod BUILD($!rfc, $!grammar) {}
+submethod BUILD(:$!rfc, :$!grammar) {}
 
 method new(Str $rfc, $grammar?) {
     my $init_grammar = $grammar;
