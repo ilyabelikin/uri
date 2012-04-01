@@ -5,10 +5,10 @@ use IETF::RFC_Grammar::URI;
 use URI::Escape;
 need URI::DefaultPort;
 
-has $.grammar is ro;
-has Bool $.is_validating is rw = False;
+has $.grammar;
+has $.is_validating is rw = False;
 has $!path;
-has Bool $!is_absolute is ro;
+has $!is_absolute;
 has $!scheme;
 has $!authority;
 has $!query;
@@ -29,7 +29,6 @@ method parse (Str $str) {
         $!frag = Mu;
     %!query_form = @!segments = Nil;
 
-    my $note_caught;
     try {
         if ($.is_validating) {
             $!grammar.parse_validating($c_str);
@@ -39,10 +38,11 @@ method parse (Str $str) {
         }
 
         CATCH {
-            $note_caught++; # exception handling still needs some work ...
+            default {
+                die "Could not parse URI: $str"
+            }
         }
     }
-    if $note_caught {die "Could not parse URI: $str"  }
 
     # now deprecated
     $!uri = $!grammar.parse_result;
@@ -74,7 +74,9 @@ method parse (Str $str) {
     try {
         %!query_form = split_query( ~$!query );
         CATCH {
-            %!query_form = Nil;
+            default {
+                %!query_form = ();
+            }
         }
     }
 }
@@ -111,7 +113,7 @@ method init ($str) {
 }
 
 # new can pass alternate grammars some day ...
-submethod BUILD($!is_validating?) {
+submethod BUILD(:$!is_validating) {
     $!grammar = IETF::RFC_Grammar.new('rfc3896');
 }
 
@@ -119,14 +121,14 @@ method new(Str $uri_pos1?, Str :$uri, :$is_validating) {
     my $obj = self.bless(*);
 
     if $is_validating.defined {
-        $obj.is_validating = $is_validating;
+        $obj.is_validating = ?$is_validating;
     }
 
     if $uri.defined and $uri_pos1.defined {
         die "Please specify the uri by name or position but not both.";
     }
     elsif $uri.defined or $uri_pos1.defined {
-        $obj.parse($uri.defined ?? $uri !! $uri_pos1);
+        $obj.parse($uri // $uri_pos1);
     }
 
     return $obj;
