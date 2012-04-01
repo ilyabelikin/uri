@@ -29,11 +29,11 @@ is($u.host, 'example.com', 'host');
 is( "$u", 'https://example.com',
     'https://eXAMplE.COM stringifies to https://example.com');
 is($u.port, 443, 'default https port');
-is($u._port, Int, 'no specified port');
+ok(! $u._port.defined, 'no specified port');
 
 $u.parse('/foo/bar/baz');
 
-is($u.segments, 'foo bar baz', 'setments from absolute path');
+is($u.segments, 'foo bar baz', 'segments from absolute path');
 ok($u.absolute, 'absolute path');
 nok($u.relative, 'not relative path');
 
@@ -64,7 +64,7 @@ $u.parse(' "http://foo.com"');
 is("$u", 'http://foo.com', '"" removed from str');
 my $host_in_grammar =
     $u.grammar.parse_result<URI_reference><URI><hier_part><authority><host>;
-is($host_in_grammar<IPv4address>, '', 'grammar detected host not ip'
+ok(! $host_in_grammar<IPv4address>.defined, 'grammar detected host not ip'
 );
 is($host_in_grammar<reg_name>, 'foo.com', 'grammar detected registered domain style');
 
@@ -74,7 +74,7 @@ $host_in_grammar =
     $u.grammar.parse_result<URI_reference><URI><hier_part><authority><host>;
 
 is($host_in_grammar<IPv4address>, '10.0.0.1', 'grammar detected ipv4');
-is($host_in_grammar<reg_name>, '', 'grammar detected no registered domain style');
+ok(! $host_in_grammar<reg_name>.defined, 'grammar detected no registered domain style');
 
 $u.parse('http://example.com:80/about?foo=cod&bell=bob#bar');
 is($u.query, 'foo=cod&bell=bob', 'query with form params');

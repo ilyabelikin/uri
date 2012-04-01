@@ -72,7 +72,7 @@ method parse (Str $str) {
 #    @!segments ||= ('');
 
     try {
-        %!query_form = split_query( ~$!query );
+        %!query_form = split_query( ~$!query ) if $!query;
         CATCH {
             default {
                 %!query_form = ();
