@@ -1,6 +1,6 @@
 use v6;
 use Test;
-plan 43;
+plan 47;
 
 use URI;
 ok(1,'We use URI and we are still alive');
@@ -84,6 +84,16 @@ is($u.query_form<bell>, 'bob', 'query param bell');
 $u.parse('http://example.com:80/about?foo=cod&foo=trout#bar');
 is($u.query_form<foo>[0], 'cod', 'query param foo - el 1');
 is($u.query_form<foo>[1], 'trout', 'query param foo - el 2');
+is($u.frag, 'bar', 'test query and frag capture');
+
+$u.parse('http://example.com:80/about?foo=cod&foo=trout');
+is($u.query_form<foo>[1], 'trout', 'query param foo - el 2 without frag');
+
+$u.parse('about/perl6uri?foo=cod&foo=trout#bar');
+is($u.query_form<foo>[1], 'trout', 'query param foo - el 2 relative path');
+
+$u.parse('about/perl6uri?foo=cod&foo=trout');
+is($u.query_form<foo>[1], 'trout', 'query param foo - el 2 relative path without frag');
 
 my ($url_1_valid, $url_2_valid) = (1, 1);
 try {

@@ -12,7 +12,11 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
 
     token absolute_URI      { <scheme> ':' <.hier_part> [ '?' query ]? };
     token relative_ref      {
-        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
+# need workaround for RT #112148/RT #107254
+#        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
+        <relative_part> [ 
+            '?' <query> [ '#' <fragment> ]? | [ '#' <fragment> ]?
+        ]
     };
 
     token relative_part     {
@@ -23,9 +27,11 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
 
     token URI               {
-        # should be [ '?' <query> ]?
-        # but that triggers a rakudobug (RT #112148)
-        <scheme> ':' <hier_part> [ '?' <query> | <?> ] <?before .?> [ '#' <fragment> ]?
+# need workaround for RT #112148/RT #107254
+#        <scheme> ':' <hier_part> ['?' <query> ]?  [ '#' <fragment> ]?
+        <scheme> ':' <hier_part> [ 
+            '?' <query>  [ '#' <fragment> ]? | [ '#' <fragment> ]?
+        ]
     };
 
     token hier_part     {
