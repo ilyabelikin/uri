@@ -7,10 +7,12 @@ use IETF::RFC_Grammar::IPv6;
 
 grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     token TOP               { <URI_reference> };
+    token TOP_non_empty     { <URI> | <relative_ref_non_empty> };
     token TOP_validating    { ^ <URI_reference> $ };
     token URI_reference     { <URI> | <relative_ref> };
 
     token absolute_URI      { <scheme> ':' <.hier_part> [ '?' query ]? };
+
     token relative_ref      {
 # need workaround for RT #112148/RT #107254
 #        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
@@ -18,12 +20,24 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
             '?' <query> [ '#' <fragment> ]? | [ '#' <fragment> ]?
         ]
     };
-
     token relative_part     {
         '//' <authority> <path_abempty>     |
         <path_absolute>                     |
         <path_noscheme>                     |
         <path_empty>
+    };
+
+    token relative_ref_non_empty      {
+# need workaround for RT #112148/RT #107254
+#        <relative_part_non_empty> [ '?' <query> ]? [ '#' <fragment> ]?
+        <relative_part_non_empty> [ 
+            '?' <query> [ '#' <fragment> ]? | [ '#' <fragment> ]?
+        ]
+    };
+    token relative_part_non_empty     {
+        '//' <authority> <path_abempty>     |
+        <path_absolute>                     |
+        <path_noscheme>                     
     };
 
     token URI               {

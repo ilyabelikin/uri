@@ -10,6 +10,9 @@ my %rfc_grammar_build = (
 );
 my %rfc_grammar;
 
+# Hack to give hint to ufo/Panda to build in the right order.
+# remove some day when module builders are upgraded
+use IETF::RFC_Grammar::URI;
 
 has $.rfc;
 has $.grammar;
