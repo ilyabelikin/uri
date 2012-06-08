@@ -14,11 +14,7 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     token absolute_URI      { <scheme> ':' <.hier_part> [ '?' query ]? };
 
     token relative_ref      {
-# need workaround for RT #112148/RT #107254
-#        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
-        <relative_part> [ 
-            '?' <query> [ '#' <fragment> ]? | [ '#' <fragment> ]?
-        ]
+        <relative_part> [ '?' <query> ]? [ '#' <fragment> ]?
     };
     token relative_part     {
         '//' <authority> <path_abempty>     |
@@ -28,11 +24,7 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
 
     token relative_ref_non_empty      {
-# need workaround for RT #112148/RT #107254
-#        <relative_part_non_empty> [ '?' <query> ]? [ '#' <fragment> ]?
-        <relative_part_non_empty> [ 
-            '?' <query> [ '#' <fragment> ]? | [ '#' <fragment> ]?
-        ]
+        <relative_part_non_empty> [ '?' <query> ]? [ '#' <fragment> ]?
     };
     token relative_part_non_empty     {
         '//' <authority> <path_abempty>     |
@@ -41,11 +33,7 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
     };
 
     token URI               {
-# need workaround for RT #112148/RT #107254
-#        <scheme> ':' <hier_part> ['?' <query> ]?  [ '#' <fragment> ]?
-        <scheme> ':' <hier_part> [ 
-            '?' <query>  [ '#' <fragment> ]? | [ '#' <fragment> ]?
-        ]
+        <scheme> ':' <hier_part> ['?' <query> ]?  [ '#' <fragment> ]?
     };
 
     token hier_part     {
