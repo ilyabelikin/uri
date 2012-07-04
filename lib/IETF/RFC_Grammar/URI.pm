@@ -84,7 +84,7 @@ grammar IETF::RFC_Grammar::URI is IETF::RFC_Grammar::IPv6 {
 
     token reserved          { <+gen_delims +sub_delims> };
 
-    token gen_delims        { <[:/?#\[\]@]> };
+    token gen_delims        { <[:/?\#\[\]@]> };
     token sub_delims        { <[;!$&'()*+,=]> };
 
     token uri_alphanum      { <+uri_alpha +digit> };   
