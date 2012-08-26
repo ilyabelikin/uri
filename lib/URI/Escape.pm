@@ -17,18 +17,12 @@ package URI::Escape {
 
     sub uri_escape($s, Bool :$no_utf8 = False) is export {
         return $s unless defined $s;
-        $s.subst(:g, rx/<- [!*'()\-._~A..Za..z0..9]>+/,
-            -> $escape {
-            ($escape.Str.comb.map: {
-                ( $no_utf8 || ! 0x80 +& ord($_) ) ?? %escapes{ $_ } !!
-                    do {
-                        my $buf = $_.encode;
-                        for (0 ..^ $buf.elems) {
-                            sprintf '%%%02X', $buf[ $_ ]
-                        }
-                    }
-           }).join;            
-        });
+        $s.subst(:g, rx/<- [!*'()\-._~A..Za..z0..9]>/,
+            {
+                ( $no_utf8 || ! 0x80 +& ord(.Str) ) ?? %escapes{ .Str } !!
+                    %escapes{.Str.encode.list>>.chr}.join;
+            }
+        );
     }
 
     # todo - automatic invalid UTF-8 detection
