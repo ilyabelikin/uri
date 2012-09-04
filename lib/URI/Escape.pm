@@ -8,7 +8,7 @@ package URI::Escape {
         ;
         .chr => sprintf '%%%02X', $_
     };
-
+    %escapes{' '} = '+';
     # in moving from RFC 2396 to RFC 3986 this selection of characters
     # may be due for an update ...
 
