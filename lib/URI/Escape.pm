@@ -9,6 +9,7 @@ package URI::Escape {
         .chr => sprintf '%%%02X', $_
     };
     %escapes{' '} = '+';
+
     # in moving from RFC 2396 to RFC 3986 this selection of characters
     # may be due for an update ...
 
@@ -19,8 +20,9 @@ package URI::Escape {
         return $s unless defined $s;
         $s.subst(:g, rx/<- [!*'()\-._~A..Za..z0..9]>/,
             {
-                ( $no_utf8 || ! 0x80 +& ord(.Str) ) ?? %escapes{ .Str } !!
-                    %escapes{.Str.encode.list>>.chr}.join;
+                ( $no_utf8 || not 0x80 +& ord(.Str) ) ?? %escapes{ .Str } !!
+                    # as unpack progresses the line below can improve ...
+                    '%' ~ .Str.encode.unpack('H*').uc.comb(/../).join('%')
             }
         );
     }
