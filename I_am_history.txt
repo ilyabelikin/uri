@@ -1,7 +1,0 @@
-Well normally you don't have such a document hear but unusual circumstances require it now.  Maybe I can remove it or move the information soon.  Anyway a bit of history of the project.
-
-Originally created by:
-Ilya of  Vladivostok, Russia
-
-Converted from regex technology to Perl6 grammar technology matching the rfc BNF and lately maintained by:
-Ron Schmidt, Teaneck NJ
