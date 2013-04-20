@@ -3,5 +3,5 @@
     "version"     : "*",
     "description" : "A URI implementation using Perl 6 grammars to implement RFC 3986 BNF",
     "depends"     : [ ],
-    "source-url"    : "git://github.com/ihrd/uri.git"
+    "source-url"    : "git://github.com/colomon/uri.git"
 }
