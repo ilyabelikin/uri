@@ -39,7 +39,7 @@ method new(Str $rfc, $grammar?) {
         unless %rfc_grammar.exists($rfc) {
             my $module = %rfc_grammar_build{$rfc};
             require ::($module);             
-            %rfc_grammar{$rfc} = eval %rfc_grammar_build{$rfc};
+            %rfc_grammar{$rfc} = EVAL %rfc_grammar_build{$rfc};
         }
         $init_grammar = %rfc_grammar{$rfc};
     }
